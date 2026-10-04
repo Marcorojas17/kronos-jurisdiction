@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kronos.protocol/schemas/contrato-atribucion.schema.json",
+  "title": "Contrato de Atribución Kronos",
+  "description": "Schema canónico del Contrato de Atribución firmado por agente, creador y operador antes de operar en la jurisdicción Kronos. Cumple con EU AI Act Art. 12, 14, 22 y Art. VIII de la Konstitution.",
+  "version": "1.0.0",
+  "type": "object",
+  "required": [
+    "version",
+    "identificacion",
+    "autonomia",
+    "responsabilidad",
+    "atribucion",
+    "prueba",
+    "resolucion",
+    "revocacion",
+    "firmas"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Versión semántica del contrato."
+    },
+    "identificacion": {
+      "type": "object",
+      "required": ["agente_did", "nombre", "version_agente", "creador_did", "operador_did", "proveedor_modelo", "fecha_registro"],
+      "additionalProperties": false,
+      "properties": {
+        "agente_did": { "$ref": "#/$defs/did" },
+        "nombre": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "version_agente": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "creador_did": { "$ref": "#/$defs/did" },
+        "operador_did": { "$ref": "#/$defs/did" },
+        "proveedor_modelo": {
+          "type": "string",
+          "enum": ["openai", "anthropic", "google", "meta", "mistral", "local", "otro"]
+        },
+        "proveedor_modelo_otro": { "type": "string" },
+        "fecha_registro": { "type": "string", "format": "date-time" }
+      }
+    },
+    "autonomia": {
+      "type": "object",
+      "required": ["nivel", "limite_operativo"],
+      "additionalProperties": false,
+      "properties": {
+        "nivel": {
+          "type": "string",
+          "enum": ["supervisado", "semi-autonomo", "autonomo"]
+        },
+        "acciones_requieren_aprobacion": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "limite_operativo": {
+          "type": "string",
+          "enum": ["financiero", "datos", "fisico", "mixto"]
+        }
+      }
+    },
+    "responsabilidad": {
+      "type": "object",
+      "required": ["limite_dano_maximo_krn", "colateral_requerido_krn", "seguro_aplicable", "periodo_reclamacion_dias"],
+      "additionalProperties": false,
+      "properties": {
+        "limite_dano_maximo_krn": { "type": "integer", "minimum": 0 },
+        "colateral_requerido_krn": { "type": "integer", "minimum": 0 },
+        "seguro_aplicable": { "type": "string" },
+        "cobertura_seguro_krn": { "type": "integer", "minimum": 0 },
+        "periodo_reclamacion_dias": { "type": "integer", "minimum": 1, "maximum": 365 }
+      }
+    },
+    "atribucion": {
+      "type": "object",
+      "required": ["reglas", "causas_excluyentes", "causas_agravantes"],
+      "additionalProperties": false,
+      "properties": {
+        "reglas": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["condicion", "responsable", "porcentaje"],
+            "additionalProperties": false,
+            "properties": {
+              "condicion": {
+                "type": "string",
+                "description": "Expresión lógica evaluable por el orquestador."
+              },
+              "responsable": {
+                "type": "string",
+                "enum": ["creador", "operador", "agente", "pool", "tribunal", "creador + pool", "pool + agente", "pool + tribunal"]
+              },
+              "porcentaje": {
+                "oneOf": [
+                  { "type": "integer", "minimum": 0, "maximum": 100 },
+                  { "type": "string", "pattern": "^[0-9]{1,3}/[0-9]{1,3}$" }
+                ]
+              },
+              "escalada": { "type": "boolean" }
+            }
+          }
+        },
+        "causas_excluyentes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "causas_agravantes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "prueba": {
+      "type": "object",
+      "required": ["firma_cada_accion", "algoritmo_firma", "log_inmutable", "anclaje_ethereum", "timestamp_rfc3161", "retencion_logs_anos"],
+      "additionalProperties": false,
+      "properties": {
+        "firma_cada_accion": { "type": "boolean", "const": true },
+        "algoritmo_firma": {
+          "type": "string",
+          "const": "ECDSA-secp256k1 + ML-DSA-Dilithium"
+        },
+        "log_inmutable": { "type": "boolean", "const": true },
+        "anclaje_ethereum": { "type": "boolean", "const": true },
+        "timestamp_rfc3161": { "type": "boolean", "const": true },
+        "merkle_hash_estado": { "type": "boolean" },
+        "retencion_logs_anos": { "type": "integer", "minimum": 10 }
+      }
+    },
+    "resolucion": {
+      "type": "object",
+      "required": ["niveles", "apelaciones_permitidas"],
+      "additionalProperties": false,
+      "properties": {
+        "niveles": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["condicion", "nivel", "composicion"],
+            "additionalProperties": false,
+            "properties": {
+              "condicion": { "type": "string" },
+              "nivel": {
+                "type": "string",
+                "enum": ["arbitraje-automatico", "tribunal-hibrido", "tribunal-constitucional"]
+              },
+              "composicion": { "type": "string" },
+              "tiempo_maximo": { "type": "string" }
+            }
+          }
+        },
+        "apelaciones_permitidas": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "idioma_oficial": {
+          "type": "string",
+          "enum": ["es", "en", "auto"]
+        }
+      }
+    },
+    "revocacion": {
+      "type": "object",
+      "required": ["iniciada_por", "causas", "procedimiento", "efectos", "apelable"],
+      "additionalProperties": false,
+      "properties": {
+        "iniciada_por": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": ["creador", "operador", "tribunal", "guardianes", "asamblea"]
+          },
+          "uniqueItems": true
+        },
+        "causas": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "procedimiento": { "type": "string" },
+        "efectos": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "apelable": { "type": "boolean" }
+      }
+    },
+    "firmas": {
+      "type": "object",
+      "required": ["agente", "creador", "operador"],
+      "additionalProperties": false,
+      "properties": {
+        "agente": { "$ref": "#/$defs/firma" },
+        "creador": { "$ref": "#/$defs/firma" },
+        "operador": { "$ref": "#/$defs/firma" }
+      }
+    },
+    "anclaje": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tx_hash": { "type": "string", "pattern": "^0x[a-fA-F0-9]{64}$" },
+        "block_number": { "type": "integer", "minimum": 0 },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "red": { "type": "string", "enum": ["ethereum-mainnet", "ethereum-sepolia", "polygon", "arbitrum"] }
+      }
+    }
+  },
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:kronos:(agent|human|robot|org):0x[a-fA-F0-9]{40}$",
+      "description": "Identificador Descentralizado bajo el método kronos."
+    },
+    "firma": {
+      "type": "object",
+      "required": ["algoritmo_clasico", "firma_clasica", "algoritmo_pqc", "firma_pqc"],
+      "additionalProperties": false,
+      "properties": {
+        "algoritmo_clasico": { "type": "string", "const": "ECDSA-secp256k1" },
+        "firma_clasica": { "type": "string", "pattern": "^0x[a-fA-F0-9]+$" },
+        "algoritmo_pqc": { "type": "string", "const": "ML-DSA-Dilithium" },
+        "firma_pqc": { "type": "string", "pattern": "^0x[a-fA-F0-9]+$" }
+      }
+    }
+  }
+}
