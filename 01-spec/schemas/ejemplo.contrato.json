@@ -1,0 +1,142 @@
+{
+  "version": "1.0.0",
+  "identificacion": {
+    "agente_did": "did:kronos:agent:0x1234567890abcdef1234567890abcdef12345678",
+    "nombre": "Agente Analista Financiero",
+    "version_agente": "1.2.0",
+    "creador_did": "did:kronos:human:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+    "operador_did": "did:kronos:human:0x9876543210fedcba9876543210fedcba98765432",
+    "proveedor_modelo": "anthropic",
+    "fecha_registro": "2026-10-03T14:30:00Z"
+  },
+  "autonomia": {
+    "nivel": "semi-autonomo",
+    "acciones_requieren_aprobacion": [
+      "transferencias > 100 KRN",
+      "acceso a datos personales",
+      "publicación de recomendaciones"
+    ],
+    "limite_operativo": "financiero"
+  },
+  "responsabilidad": {
+    "limite_dano_maximo_krn": 10000,
+    "colateral_requerido_krn": 2000,
+    "seguro_aplicable": "kronos-pool-v1",
+    "cobertura_seguro_krn": 50000,
+    "periodo_reclamacion_dias": 90
+  },
+  "atribucion": {
+    "reglas": [
+      {
+        "condicion": "autonomia.nivel == 'supervisado'",
+        "responsable": "creador",
+        "porcentaje": 100
+      },
+      {
+        "condicion": "autonomia.nivel == 'semi-autonomo' AND dano <= colateral",
+        "responsable": "creador",
+        "porcentaje": 70
+      },
+      {
+        "condicion": "autonomia.nivel == 'semi-autonomo' AND dano > colateral",
+        "responsable": "creador + pool",
+        "porcentaje": "60/40"
+      },
+      {
+        "condicion": "autonomia.nivel == 'autonomo' AND dano <= colateral",
+        "responsable": "pool + agente",
+        "porcentaje": "50/50"
+      },
+      {
+        "condicion": "autonomia.nivel == 'autonomo' AND dano > colateral",
+        "responsable": "pool + tribunal",
+        "porcentaje": "50/50",
+        "escalada": true
+      }
+    ],
+    "causas_excluyentes": [
+      "fuerza_mayor_verificada",
+      "ataque_externo_documentado",
+      "error_humano_en_configuracion"
+    ],
+    "causas_agravantes": [
+      "agente_operando_sin_colateral",
+      "logs_manipulados",
+      "ocultamiento_de_informacion"
+    ]
+  },
+  "prueba": {
+    "firma_cada_accion": true,
+    "algoritmo_firma": "ECDSA-secp256k1 + ML-DSA-Dilithium",
+    "log_inmutable": true,
+    "anclaje_ethereum": true,
+    "timestamp_rfc3161": true,
+    "merkle_hash_estado": true,
+    "retencion_logs_anos": 10
+  },
+  "resolucion": {
+    "niveles": [
+      {
+        "condicion": "disputa < 1000 KRN",
+        "nivel": "arbitraje-automatico",
+        "composicion": "smart-contract",
+        "tiempo_maximo": "48h"
+      },
+      {
+        "condicion": "disputa < 100000 KRN",
+        "nivel": "tribunal-hibrido",
+        "composicion": "3 humanos + 7 agentes",
+        "tiempo_maximo": "30d"
+      },
+      {
+        "condicion": "disputa >= 100000 KRN",
+        "nivel": "tribunal-constitucional",
+        "composicion": "7 humanos + 3 agentes",
+        "tiempo_maximo": "90d"
+      }
+    ],
+    "apelaciones_permitidas": 2,
+    "idioma_oficial": "es"
+  },
+  "revocacion": {
+    "iniciada_por": ["creador", "operador", "tribunal", "guardianes"],
+    "causas": [
+      "violacion_contrato",
+      "danos_reiterados",
+      "inactividad_90d"
+    ],
+    "procedimiento": "on-chain-vote + tribunal-approval",
+    "efectos": [
+      "congelacion_colateral",
+      "revocacion_did",
+      "publicacion_en_registro_publico"
+    ],
+    "apelable": true
+  },
+  "firmas": {
+    "agente": {
+      "algoritmo_clasico": "ECDSA-secp256k1",
+      "firma_clasica": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+      "algoritmo_pqc": "ML-DSA-Dilithium",
+      "firma_pqc": "0x2222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "creador": {
+      "algoritmo_clasico": "ECDSA-secp256k1",
+      "firma_clasica": "0x3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "algoritmo_pqc": "ML-DSA-Dilithium",
+      "firma_pqc": "0x4444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444"
+    },
+    "operador": {
+      "algoritmo_clasico": "ECDSA-secp256k1",
+      "firma_clasica": "0x5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555",
+      "algoritmo_pqc": "ML-DSA-Dilithium",
+      "firma_pqc": "0x6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666"
+    }
+  },
+  "anclaje": {
+    "tx_hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "block_number": 20000000,
+    "timestamp": "2026-10-03T14:35:00Z",
+    "red": "ethereum-mainnet"
+  }
+}
